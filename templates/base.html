@@ -14,7 +14,32 @@
     <title>Online Portfolio Tool</title>
 </head>
 <body>
-    <h1>Base template</h1>
+    <header>
+        <nav>
+            <div class="nav-wrapper blue lighten-1">
+              <a href="#" class="brand-logo">Online Portfolio Tool</a>
+              <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="fas fa-bars"></i></a>
+              <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Assets</a></li>
+                <li><a href="#">Portfolios</a></li>
+                <li><a href="{{ url_for('register') }}">Register</a></li>
+                <li><a href="#">Log In</a></li>
+                <li><a href="#">Log Out</a></li>
+              </ul>
+            </div>
+          </nav>
+
+          <ul class="sidenav" id="mobile-demo">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Assets</a></li>
+            <li><a href="#">Portfolios</a></li>
+            <li><a href="{{ url_for('register') }}">Register</a></li>
+            <li><a href="#">Log In</a></li>
+            <li><a href="#">Log Out</a></li>
+          </ul>
+    </header>
+
     {% block content %}
     {% endblock %}
 </body>

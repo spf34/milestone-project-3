@@ -5,6 +5,7 @@ from flask import (
     )
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
+from werkzeug.security import generate_password_hash, check_password_hash
 
 if os.path.exists('env.py'):
     import env
@@ -21,7 +22,13 @@ mongo = PyMongo(app)
 @app.route('/')
 def get_users():
     users = mongo.db.users.find()
-    return render_template('template.html', users=users)
+    return render_template('users.html', users=users)
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    return render_template('register.html')
+
 
 # MONGO_URI = os.environ.get('MONGO_URI')
 # DATABASE = 'OPT'
