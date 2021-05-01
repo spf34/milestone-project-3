@@ -38,14 +38,15 @@ def register():
         if existing_user:
             flash('User already exists')
             # TODO: replace with redirect when working
-            return render_template('register.html')
+            return redirect(url_for('register'))
+            # return render_template('register.html')
 
         # check that password agrees with repeat-password
         password = request.form.get('password')
         if password != request.form.get('repeat-password'):
             flash('Passwords do not match!')
-            # TODO: replace with redirect when working
-            return render_template('register.html')
+            return redirect(url_for('register'))
+            # return render_template('register.html')
 
         # generate user record and add to db
         user_details = {
