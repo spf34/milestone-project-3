@@ -18,6 +18,8 @@ app.secret_key = os.environ.get('SECRET_KEY')
 
 mongo = PyMongo(app)
 
+USER_FIELDS = ('first', 'last', 'email')
+
 
 @app.route('/')
 def get_users():
@@ -27,64 +29,39 @@ def get_users():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if request.method == 'POST':
+        # check to see whether the email address is already registered
+        existing_user = mongo.db.users.find_one({
+            'email': request.form.get('email').lower()
+            })
+
+        if existing_user:
+            flash('User already exists')
+            # TODO: replace with redirect when working
+            return render_template('register.html')
+
+        # check that password agrees with repeat-password
+        password = request.form.get('password')
+        if password != request.form.get('repeat-password'):
+            flash('Passwords do not match!')
+            # TODO: replace with redirect when working
+            return render_template('register.html')
+
+        # generate user record and add to db
+        user_details = {
+            field: request.form.get(field).lower() for field in USER_FIELDS
+            }
+        password = {
+            'password': generate_password_hash(password)
+            }
+        registration = {**user_details, **password}
+        mongo.db.users.insert_one(registration)
+
+        # put the new user into session cookie
+        session['user'] = registration['email']
+        flash('Registered Successfully!')
     return render_template('register.html')
 
-
-# MONGO_URI = os.environ.get('MONGO_URI')
-# DATABASE = 'OPT'
-# COLLECTION = 'users'
-
-
-# def mongo_connect(url):
-#     try:
-#         conn = pymongo.MongoClient(url)
-#         print('Mongo is connected')
-#         return conn
-#     except pymongo.errors.ConnectionFailure as e:
-#         print(f'Could not connect to MongoDB: {e}')
-
-# pkill -9 python3
-
-# conn = mongo_connect(MONGO_URI)
-
-# coll = conn[DATABASE][COLLECTION]
-
-# sf = {
-#     'first': 'Samuel',
-#     'last': 'Forster',
-#     'email': 'samuel.p.forster@gmail.com',
-#     'user_id': 1,
-#     }
-
-# jl = {
-#     'first': 'Jesse',
-#     'last': 'Livermore',
-#     'email': 'j.livermore@gmail.com',
-#     'user_id': 2,
-#     }
-
-# dh = {
-#     'first':  'David',
-#     'last': 'Harding',
-#     'email': 'david.harding@winton.com',
-#     'user_id': 3,
-#     }
-
-# new_docs = [sf, jl, dh]
-
-# coll.insert_many(new_docs)
-# coll.delete_one(dh)
-
-# coll.update_one({'first': 'David'}, {'$set': {'last': 'X', 'email': 'DavidX@X.com'}})
-
-# documents = coll.find({'first': 'David'})
-
-# documents = coll.find()
-# print(type(documents))
-# print(len(documents))
-
-# for doc in documents:
-#     print(doc)
 
 if __name__ == '__main__':
     app.run(
