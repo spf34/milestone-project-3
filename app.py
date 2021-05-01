@@ -37,16 +37,13 @@ def register():
 
         if existing_user:
             flash('User already exists')
-            # TODO: replace with redirect when working
             return redirect(url_for('register'))
-            # return render_template('register.html')
 
         # check that password agrees with repeat-password
         password = request.form.get('password')
         if password != request.form.get('repeat-password'):
             flash('Passwords do not match!')
             return redirect(url_for('register'))
-            # return render_template('register.html')
 
         # generate user record and add to db
         user_details = {
@@ -62,6 +59,29 @@ def register():
         session['user'] = registration['email']
         flash('Registered Successfully!')
     return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        existing_user = mongo.db.users.find_one({
+            'email': request.form.get('email').lower()
+            })
+        if existing_user:
+            password = request.form.get('password')
+            if check_password_hash(existing_user['password'], password):
+                session['user'] = existing_user['email']
+                full_name = existing_user["first"].capitalize() + ' '
+                full_name += existing_user["last"].capitalize()
+                flash(f'Welcome {full_name}')
+            else:
+                flash('Email or password not recognised')
+                return redirect(url_for('login'))
+        else:
+            flash('Email or password not recognised')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
 
 
 if __name__ == '__main__':
