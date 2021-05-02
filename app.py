@@ -46,16 +46,47 @@ def get_username_from_email(email):
     return first.capitalize() + last.capitalize()
 
 
-def get_portfolio_from_email(email):
-    user_info = mongo.db.users.find({'email': email})
-    user_id = user_info['_id']
-    mongo.db.portfolios.find({'user_id': user_id})
-    # ToDo: implement rest of this method
-    return
+def get_portfolio_from_username(username):
+    return mongo.db.portfolios.find_one({'username': username})
 
 
-def upload_records(records, email):
+def edit_records():
     pass
+
+
+def upload_records(records, username, overwrite=True):
+    # username = session['username']
+    data = records.transpose().to_dict()
+
+    # remove dates already present in db if overwrite is set to false
+    if not overwrite:
+        current_portfolio = get_portfolio_from_username(username)
+        for field in current_portfolio:
+            if field not in ['_id', 'username']:
+                data[field] = current_portfolio[field]
+
+    records_to_upload = {
+        **{'username': username},
+        **data
+        }
+    mongo.db.portfolios.insert_one(records_to_upload)
+
+
+def validate_portfolio_records(records):
+    # check valid assets passed
+    columns = records.columns.tolist()
+    assert all([x.upper() in TICKERS for x in columns])
+
+    # convert index to datetimes
+    try:
+        records.index = pd.to_datetime(records.index, format='%Y-%m-%d')
+    except ValueError:
+        flash('Unable to parse dates. Please use the format: "yyyy/mm/dd"')
+
+    # check for valid dates
+    assert records.first_valid_index() >= HISTORY_START
+
+    return records, True
 
 # routing methods
 
@@ -84,23 +115,6 @@ def portfolio_overview(username):
         rows=list(portfolio.values.tolist()),
         zip=zip
         )
-
-
-def validate_portfolio_records(records):
-    # check valid assets passed
-    columns = records.columns.tolist()
-    assert all([x.upper() in TICKERS for x in columns])
-
-    # convert index to datetimes
-    try:
-        records.index = pd.to_datetime(records.index, format='%Y-%m-%d')
-    except ValueError:
-        flash('Unable to parse dates. Please use the format: "yyyy/mm/dd"')
-
-    # check for valid dates
-    assert records.first_valid_index() >= HISTORY_START
-
-    return records, True
 
 
 @app.route('/portfolio_construction/<username>', methods=['GET', 'POST'])
@@ -199,8 +213,29 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run(
-        host=os.environ.get('IP'),
-        port=int(os.environ.get('PORT')),
-        debug=True
-    )
+    # app.run(
+    #     host=os.environ.get('IP'),
+    #     port=int(os.environ.get('PORT')),
+    #     debug=True
+    # )
+
+    # records1 = pd.read_csv('static/data/records1.csv', index_col=0)
+    # print(records1)
+    email = 'samuel.p.forster@gmail.com'
+    username = get_username_from_email(email)
+    # upload_records(records1, username, overwrite=True)
+
+    records2 = pd.read_csv('static/data/records2.csv', index_col=0)
+    print(records2)
+
+    print('CURRENT PORTFOLIO')
+    current_portfolio = get_portfolio_from_username(username)
+    for k, v in current_portfolio.items():
+        print(f'{k}: {v}')
+
+    upload_records(records2, username, overwrite=False)
+    
+    print('CURRENT PORTFOLIO')
+    current_portfolio = get_portfolio_from_username(username)
+    for k, v in current_portfolio.items():
+        print(f'{k}: {v}')
