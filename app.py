@@ -40,7 +40,8 @@ def portfolios(username):
         'portfolios.html',
         username=username,
         column_names=portfolio.columns.tolist(),
-        row_data=list(portfolio.values.tolist())
+        row_data=list(portfolio.values.tolist()),
+        zip=zip
         )
     return template
 
