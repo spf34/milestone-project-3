@@ -6,12 +6,12 @@
     <table>
         <tr>
             {% for c in columns %}
-            <th>{{c}}</th>
+                <th>{{c}}</th>
             {% endfor %}
         </tr>
         {% for row in rows %}
         <tr>
-            {% for c, r in zip(c, row) %}
+            {% for c, r in zip(columns, row) %}
                 <td>{{r}}</td>
             {% endfor %}
         </tr>

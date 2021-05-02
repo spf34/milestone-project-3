@@ -4,6 +4,7 @@ Issues encountered:
 
 - Heroku app error. Must maintain up to date requirements.txt file to ensure all required packages available for the deployed version 
 
+- Having to test updates through Heroku due to redirect method issue
 
 Sources used:
 

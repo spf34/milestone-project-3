@@ -35,7 +35,11 @@ def get_users():
 @app.route('/portfolio/<username>', methods=['GET', 'POST'])
 def portfolio(username):
     # portfolio = get_portfolio_from_email(email)
-    portfolio = pd.DataFrame({'A': [x for x in range(50)], 'B': [3 * x for x in range(50)]})
+    portfolio = pd.DataFrame({
+        'A': [x for x in range(20)],
+        'E': [3 * x for x in range(20)]
+        })
+
     template = render_template(
         'portfolio.html',
         username=username,
@@ -75,9 +79,10 @@ def register():
         mongo.db.users.insert_one(registration)
 
         # put the new user into session cookie
-        session['user'] = registration['email']
+        username = get_username_from_email(registration['email'])
+        session['username'] = username
         flash('Registered Successfully!')
-        username = get_username_from_email(session['user'])
+
         return redirect(url_for('portfolio'), username)
 
     return render_template('register.html')
@@ -92,9 +97,10 @@ def login():
         if existing_user:
             password = request.form.get('password')
             if check_password_hash(existing_user['password'], password):
-                session['user'] = existing_user['email']
-                username = get_username_from_email(session['user'])
+                username = get_username_from_email(existing_user['email'])
+                session['username'] = username
                 flash(f'Welcome {username}')
+
                 return redirect(url_for('portfolio', username=username))
             else:
                 flash('Email or password not recognised')
@@ -130,14 +136,4 @@ if __name__ == '__main__':
         debug=True
     )
 
-    # for ptf in mongo.db.portfolios.find():
-    #     for k, v in ptf.items():
-    #         if k != '_id':
-    #             for u, w in v.items():
-    #                 print(u, w)
-    # mongo.db.portfolios.insert_one(df.transpose().to_dict())
-
-    # portfolios = mongo.db.portfolios.find()
-    # for ptf in portfolios:
-    #     print(record_to_dataframe(ptf))
     # print(PRICES)
