@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from flask import (
     Flask, flash, render_template,
     redirect, request, session, url_for
@@ -9,6 +10,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 if os.path.exists('env.py'):
     import env
+
+import asset_data
+PRICES = asset_data.asset_prices
+TICKERS = asset_data.TICKERS
 
 app = Flask(__name__)
 
@@ -84,9 +89,24 @@ def login():
     return render_template('login.html')
 
 
+def record_to_dataframe(data):
+    return pd.DataFrame(data).drop('_id', axis=1).transpose()
+
+
 if __name__ == '__main__':
-    app.run(
-        host=os.environ.get('IP'),
-        port=int(os.environ.get('PORT')),
-        debug=True
-        )
+    # app.run(
+    #     host=os.environ.get('IP'),
+    #     port=int(os.environ.get('PORT')),
+    #     debug=True
+    #     )
+    # for ptf in mongo.db.portfolios.find():
+    #     for k, v in ptf.items():
+    #         if k != '_id':
+    #             for u, w in v.items():
+    #                 print(u, w)
+    # mongo.db.portfolios.insert_one(df.transpose().to_dict())
+
+    # portfolios = mongo.db.portfolios.find()
+    # for ptf in portfolios:
+    #     print(record_to_dataframe(ptf))
+    print(PRICES)
