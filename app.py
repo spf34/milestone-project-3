@@ -32,6 +32,19 @@ def get_users():
     return render_template('users.html', users=users)
 
 
+@app.route('/portfolios/<username>', methods=['GET', 'POST'])
+def portfolios(username):
+    # portfolio = get_portfolio_from_email(email)
+    portfolio = pd.DataFrame({'A': [1, 2, 3], 'B': [3, 4, 5]})
+    template = render_template(
+        'portfolios.html',
+        username=username,
+        column_names=portfolio.columns.tolist(),
+        row_data=list(portfolio.values.tolist())
+        )
+    return template
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -63,6 +76,9 @@ def register():
         # put the new user into session cookie
         session['user'] = registration['email']
         flash('Registered Successfully!')
+        username = get_username_from_email(session['user'])
+        return redirect(url_for('portfolios'), username)
+
     return render_template('register.html')
 
 
@@ -76,16 +92,15 @@ def login():
             password = request.form.get('password')
             if check_password_hash(existing_user['password'], password):
                 session['user'] = existing_user['email']
-                full_name = existing_user["first"].capitalize() + ' '
-                full_name += existing_user["last"].capitalize()
-                flash(f'Welcome {full_name}')
+                username = get_username_from_email(session['user'])
+                flash(f'Welcome {username}')
+                return redirect(url_for('portfolios', username=username))
             else:
                 flash('Email or password not recognised')
                 return redirect(url_for('login'))
         else:
             flash('Email or password not recognised')
             return redirect(url_for('login'))
-
     return render_template('login.html')
 
 
@@ -93,12 +108,27 @@ def record_to_dataframe(data):
     return pd.DataFrame(data).drop('_id', axis=1).transpose()
 
 
+def get_username_from_email(email):
+    user_info = mongo.db.users.find_one({'email': email})
+    first = user_info['first']
+    last = user_info['last']
+    return first.capitalize() + last.capitalize()
+
+
+def get_portfolio_from_email(email):
+    user_info = mongo.db.users.find({'email': email})
+    user_id = user_info['_id']
+    mongo.db.portfolios.find({'user_id': user_id})
+    # ToDo: implement rest of this method
+    return
+
 if __name__ == '__main__':
-    # app.run(
-    #     host=os.environ.get('IP'),
-    #     port=int(os.environ.get('PORT')),
-    #     debug=True
-    #     )
+    app.run(
+        host=os.environ.get('IP'),
+        port=int(os.environ.get('PORT')),
+        debug=True
+    )
+
     # for ptf in mongo.db.portfolios.find():
     #     for k, v in ptf.items():
     #         if k != '_id':
@@ -109,4 +139,4 @@ if __name__ == '__main__':
     # portfolios = mongo.db.portfolios.find()
     # for ptf in portfolios:
     #     print(record_to_dataframe(ptf))
-    print(PRICES)
+    # print(PRICES)
