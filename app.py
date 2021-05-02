@@ -34,6 +34,9 @@ def get_users():
 
 @app.route('/portfolio/<username>', methods=['GET', 'POST'])
 def portfolio(username):
+    if not session.get('username'):
+        return redirect(url_for('login'))
+
     # portfolio = get_portfolio_from_email(email)
     portfolio = pd.DataFrame({
         'A': [x for x in range(20)],
@@ -111,6 +114,13 @@ def login():
     return render_template('login.html')
 
 
+@app.route('/logout')
+def logout():
+    flash('You have been logged out')
+    session.pop('username')
+    return redirect(url_for('login'))
+
+
 def record_to_dataframe(data):
     return pd.DataFrame(data).drop('_id', axis=1).transpose()
 
@@ -128,6 +138,7 @@ def get_portfolio_from_email(email):
     mongo.db.portfolios.find({'user_id': user_id})
     # ToDo: implement rest of this method
     return
+
 
 if __name__ == '__main__':
     app.run(
