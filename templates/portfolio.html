@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h3>Portfolio Weights</h3>
+    
+    <table>
+        <tr>
+            {% for c in columns %}
+            <th>{{c}}</th>
+            {% endfor %}
+        </tr>
+        {% for row in rows %}
+        <tr>
+            {% for c, r in zip(c, row) %}
+                <td>{{r}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

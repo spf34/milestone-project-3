@@ -32,15 +32,15 @@ def get_users():
     return render_template('users.html', users=users)
 
 
-@app.route('/portfolios/<username>', methods=['GET', 'POST'])
-def portfolios(username):
+@app.route('/portfolio/<username>', methods=['GET', 'POST'])
+def portfolio(username):
     # portfolio = get_portfolio_from_email(email)
-    portfolio = pd.DataFrame({'A': [1, 2, 3], 'B': [3, 4, 5]})
+    portfolio = pd.DataFrame({'A': [x for x in range(50)], 'B': [3 * x for x in range(50)]})
     template = render_template(
-        'portfolios.html',
+        'portfolio.html',
         username=username,
-        column_names=portfolio.columns.tolist(),
-        row_data=list(portfolio.values.tolist()),
+        columns=portfolio.columns.tolist(),
+        rows=list(portfolio.values.tolist()),
         zip=zip
         )
     return template
@@ -78,7 +78,7 @@ def register():
         session['user'] = registration['email']
         flash('Registered Successfully!')
         username = get_username_from_email(session['user'])
-        return redirect(url_for('portfolios'), username)
+        return redirect(url_for('portfolio'), username)
 
     return render_template('register.html')
 
@@ -95,7 +95,7 @@ def login():
                 session['user'] = existing_user['email']
                 username = get_username_from_email(session['user'])
                 flash(f'Welcome {username}')
-                return redirect(url_for('portfolios', username=username))
+                return redirect(url_for('portfolio', username=username))
             else:
                 flash('Email or password not recognised')
                 return redirect(url_for('login'))
