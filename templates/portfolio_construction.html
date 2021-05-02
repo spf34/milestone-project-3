@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h3>Portfolio Construction</h3>
+    
+    <div class="row">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" id="file" name="file" accept="csv">
+            <div class="row">
+                <button type="submit" class="col s12 blue darken-2 btn-large">Upload</button>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <h4>Number of records uploaded: {{ number_records }}</h4>
+    </div>
+    <div class="row">
+        <h4>Assets included:</h4>
+        {% for asset in assets %}
+            <h5>{{ asset }} </h5>
+        {% endfor %}
+    </div>
+    
+{% endblock %}

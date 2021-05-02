@@ -14,7 +14,9 @@ if os.path.exists('env.py'):
 import asset_data
 PRICES = asset_data.asset_prices
 TICKERS = asset_data.TICKERS
+HISTORY_START = pd.to_datetime(asset_data.HISTORY_START, format='%Y-%m-%d')
 
+# app setup
 app = Flask(__name__)
 
 app.config['MONGO_DBNAME'] = os.environ.get('MONGO_DBNAME')
@@ -25,6 +27,38 @@ mongo = PyMongo(app)
 
 USER_FIELDS = ('first', 'last', 'email')
 
+# helper methods
+
+
+def set_session_info(email):
+    session['email'] = email
+    session['username'] = get_username_from_email(email)
+
+
+def record_to_dataframe(data):
+    return pd.DataFrame(data).drop('_id', axis=1).transpose()
+
+
+def get_username_from_email(email):
+    user_info = mongo.db.users.find_one({'email': email})
+    first = user_info['first']
+    last = user_info['last']
+    return first.capitalize() + last.capitalize()
+
+
+def get_portfolio_from_email(email):
+    user_info = mongo.db.users.find({'email': email})
+    user_id = user_info['_id']
+    mongo.db.portfolios.find({'user_id': user_id})
+    # ToDo: implement rest of this method
+    return
+
+
+def upload_records(records, email):
+    pass
+
+# routing methods
+
 
 @app.route('/')
 def get_users():
@@ -32,8 +66,8 @@ def get_users():
     return render_template('users.html', users=users)
 
 
-@app.route('/portfolio/<username>', methods=['GET', 'POST'])
-def portfolio(username):
+@app.route('/portfolio_overview/<username>')
+def portfolio_overview(username):
     if not session.get('username'):
         return redirect(url_for('login'))
 
@@ -43,14 +77,54 @@ def portfolio(username):
         'E': [3 * x for x in range(20)]
         })
 
-    template = render_template(
-        'portfolio.html',
+    return render_template(
+        'portfolio_overview.html',
         username=username,
         columns=portfolio.columns.tolist(),
         rows=list(portfolio.values.tolist()),
         zip=zip
         )
-    return template
+
+
+def validate_portfolio_records(records):
+    # check valid assets passed
+    columns = records.columns.tolist()
+    assert all([x.upper() in TICKERS for x in columns])
+
+    # convert index to datetimes
+    try:
+        records.index = pd.to_datetime(records.index, format='%Y-%m-%d')
+    except ValueError:
+        flash('Unable to parse dates. Please use the format: "yyyy/mm/dd"')
+
+    # check for valid dates
+    assert records.first_valid_index() >= HISTORY_START
+
+    return records, True
+
+
+@app.route('/portfolio_construction/<username>', methods=['GET', 'POST'])
+def portfolio_construction(username):
+    if request.method == 'POST':
+        filepath = request.files.get('file')
+        records = pd.read_csv(filepath, index_col=0)
+        records, validated = validate_portfolio_records(records)
+
+        if not validated:
+            flash('Unable to process records file')
+            return render_template('portfolio_construction.html')
+
+        upload_records(records, session['email'])
+
+        flash('Records successfully processed')
+        assets = records.loc[:, records.max() > 0].columns.tolist()
+        return render_template(
+            'portfolio_construction.html',
+            number_records=len(records),
+            assets=assets
+            )
+
+    return render_template('portfolio_construction.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -82,11 +156,11 @@ def register():
         mongo.db.users.insert_one(registration)
 
         # put the new user into session cookie
-        username = get_username_from_email(registration['email'])
-        session['username'] = username
+        set_session_info(registration['email'])
         flash('Registered Successfully!')
-
-        return redirect(url_for('portfolio'), username)
+        return redirect(
+            url_for('portfolio_overview'), username=session['username']
+            )
 
     return render_template('register.html')
 
@@ -99,12 +173,15 @@ def login():
             })
         if existing_user:
             password = request.form.get('password')
-            if check_password_hash(existing_user['password'], password):
-                username = get_username_from_email(existing_user['email'])
-                session['username'] = username
-                flash(f'Welcome {username}')
 
-                return redirect(url_for('portfolio', username=username))
+            if check_password_hash(existing_user['password'], password):
+                set_session_info(existing_user['email'])
+                username = session['username']
+
+                flash(f'Welcome {username}')
+                return redirect(
+                    url_for('portfolio_overview', username=username)
+                    )
             else:
                 flash('Email or password not recognised')
                 return redirect(url_for('login'))
@@ -121,30 +198,9 @@ def logout():
     return redirect(url_for('login'))
 
 
-def record_to_dataframe(data):
-    return pd.DataFrame(data).drop('_id', axis=1).transpose()
-
-
-def get_username_from_email(email):
-    user_info = mongo.db.users.find_one({'email': email})
-    first = user_info['first']
-    last = user_info['last']
-    return first.capitalize() + last.capitalize()
-
-
-def get_portfolio_from_email(email):
-    user_info = mongo.db.users.find({'email': email})
-    user_id = user_info['_id']
-    mongo.db.portfolios.find({'user_id': user_id})
-    # ToDo: implement rest of this method
-    return
-
-
 if __name__ == '__main__':
     app.run(
         host=os.environ.get('IP'),
         port=int(os.environ.get('PORT')),
         debug=True
     )
-
-    # print(PRICES)
