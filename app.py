@@ -36,10 +36,6 @@ def set_session_info(email):
     session['username'] = get_username_from_email(email)
 
 
-def record_to_dataframe(data):
-    return pd.DataFrame(data).drop('_id', axis=1).transpose()
-
-
 def get_username_from_email(email):
     user_info = mongo.db.users.find_one({'email': email})
     first = user_info['first']
@@ -51,17 +47,14 @@ def get_portfolio_from_username(username):
     return mongo.db.portfolios.find_one({'username': username})
 
 
-def edit_records():
-    pass
-
-
 def upload_records(records, username, overwrite=True):
     # username = session['username']
     data = records.transpose().to_dict()
 
     # remove dates already present in db if overwrite is set to false
+
     if not overwrite:
-        current_portfolio = get_portfolio_from_username(username)
+        current_portfolio = get_portfolio_from_username(username)    
         for field in current_portfolio:
             if field not in ['_id', 'username']:
                 data[field] = current_portfolio[field]
@@ -71,6 +64,14 @@ def upload_records(records, username, overwrite=True):
         **data
         }
     mongo.db.portfolios.insert_one(records_to_upload)
+
+    display_successful_upload_message(records)
+
+
+def display_successful_upload_message(records):
+    num_records = len(records)
+    records_text = 'Record' if num_records == 1 else 'Records'
+    flash(f'{num_records} {records_text} Successfully Processed')
 
 
 def validate_portfolio_records(records):
@@ -108,11 +109,12 @@ def portfolio_overview(username):
     if not session.get('username'):
         return redirect(url_for('login'))
 
-    # portfolio = get_portfolio_from_email(email)
-    portfolio = pd.DataFrame({
-        'A': [x for x in range(20)],
-        'E': [3 * x for x in range(20)]
-        })
+    portfolio = pd.DataFrame(get_portfolio_from_username(username))
+    portfolio = portfolio.drop(['_id', 'username'], axis=1).transpose()
+    # portfolio = pd.DataFrame({
+    #     'A': [x for x in range(20)],
+    #     'E': [3 * x for x in range(20)]
+    #     })
 
     return render_template(
         'portfolio_overview.html',
@@ -136,10 +138,7 @@ def portfolio_bulk_upload(username):
         if not validated:
             flash('Unable to process records file')
             return render_template('portfolio_bulk_upload.html')
-        upload_records(records, session['email'], overwrite=overwrite)
-        num_records = len(records)
-        records_text = 'Record' if num_records == 1 else 'Records'
-        flash(f'{num_records} {records_text} Successfully Processed')
+        upload_records(records, session['username'], overwrite=overwrite)
 
     return render_template('portfolio_bulk_upload.html')
 
@@ -147,12 +146,15 @@ def portfolio_bulk_upload(username):
 @app.route('/portfolio_position_upload/<username>', methods=['GET', 'POST'])
 def portfolio_position_upload(username):
     if request.method == 'POST':
+        # get data from request
         overwrite = 'overwrite' in request.form
         date = request.form['position_date']
         date = dtm.datetime.strftime(pd.to_datetime(date), format='%Y-%m-%d')
         weight = request.form['position_weight']
-        
-        # ticker = request.form['ticker']
+        ticker = request.form['ticker']
+
+        records = pd.DataFrame({ticker: [weight]}, index=[date])
+        upload_records(records, session['username'], overwrite=overwrite)
 
     return render_template('portfolio_position_upload.html')
 

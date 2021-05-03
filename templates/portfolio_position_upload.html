@@ -6,12 +6,12 @@
         Upload individual positions by selecting date, asset ticker and weight.
     </div>
     
-    <div class="row">
+    <div class="row card-panel grey lighten-4">
         <form method="POST" class="col s12">
             <div class="row">
                 <div class="input-field col s12">
-                    <input id="position_date" name="position_date" type="text"
-                     class="datepicker validate" required>
+                    <input type="text" class="datepicker" id="position_date" 
+                    name="position_date">
                     <label for="position_date">Position Date</label>
                 </div>
             </div>
@@ -23,10 +23,9 @@
                     <label for="position_weight">Weight</label>
                 </div>
             </div>
-
+<!-- -->
             <div class="row">
-                <div class="input-field col s12">
-                    <label for="ticker">Select Ticker</label>
+                <div class="input-field col s3">
                     
                     <select id="ticker" name="ticker">
                         <option value="" disabled selected>Select Ticker</option>
@@ -44,18 +43,25 @@
                 </div>
             </div>
 
-
             <div class="row">
-                <div class="switch">
-                    Overwrite Current Positions
-                    <label>
-                    Off
-                    <input type="checkbox" id="overwrite" name="overwrite">
-                    <span class="lever"></span>
-                    On
-                    </label>
+                
+                <div class="input-field col s3">
+                    <div class="switch">
+                        <div class="row">
+                            Overwrite Current Positions
+                        </div>
+                        <label>
+                        Off
+                        <input type="checkbox" id="overwrite" name="overwrite">
+                        <span class="lever"></span>
+                        On
+                        </label>
+                    </div>
                 </div>
+
             </div>
+
+
             <div class="row">
                 <button type="submit" class="col s12 blue darken-2 btn-large">Upload</button>
             </div>
