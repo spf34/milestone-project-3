@@ -15,6 +15,7 @@ if os.path.exists('env.py'):
 import asset_data
 PRICES = asset_data.asset_prices
 TICKERS = asset_data.TICKERS
+STATISTICS = asset_data.statistics
 HISTORY_START = pd.to_datetime(asset_data.HISTORY_START, format='%Y-%m-%d')
 
 # app setup
@@ -104,6 +105,17 @@ def get_users():
     return render_template('users.html', users=users)
 
 
+@app.route('/assets')
+def assets():
+
+    return render_template(
+        'assets.html',
+        columns=list(TICKERS),
+        rows=STATISTICS.values.tolist(),
+        zip=zip
+        )
+
+
 @app.route('/portfolio_overview/<username>')
 def portfolio_overview(username):
     if not session.get('username'):
@@ -111,18 +123,30 @@ def portfolio_overview(username):
 
     portfolio = pd.DataFrame(get_portfolio_from_username(username))
     portfolio = portfolio.drop(['_id', 'username'], axis=1).transpose()
-    # portfolio = pd.DataFrame({
-    #     'A': [x for x in range(20)],
-    #     'E': [3 * x for x in range(20)]
-    #     })
 
     return render_template(
         'portfolio_overview.html',
         username=username,
         columns=portfolio.columns.tolist(),
-        rows=list(portfolio.values.tolist()),
+        rows=portfolio.values.tolist(),
         zip=zip
         )
+
+
+@app.route('/portfolio_position_upload/<username>', methods=['GET', 'POST'])
+def portfolio_position_upload(username):
+    if request.method == 'POST':
+        # get data from request
+        overwrite = 'overwrite' in request.form
+        date = request.form['position_date']
+        date = dtm.datetime.strftime(pd.to_datetime(date), format='%Y-%m-%d')
+        weight = request.form['position_weight']
+        ticker = request.form['ticker']
+
+        records = pd.DataFrame({ticker: [weight]}, index=[date])
+        upload_records(records, session['username'], overwrite=overwrite)
+
+    return render_template('portfolio_position_upload.html')
 
 
 @app.route('/portfolio_bulk_upload/<username>', methods=['GET', 'POST'])
@@ -143,20 +167,11 @@ def portfolio_bulk_upload(username):
     return render_template('portfolio_bulk_upload.html')
 
 
-@app.route('/portfolio_position_upload/<username>', methods=['GET', 'POST'])
-def portfolio_position_upload(username):
-    if request.method == 'POST':
-        # get data from request
-        overwrite = 'overwrite' in request.form
-        date = request.form['position_date']
-        date = dtm.datetime.strftime(pd.to_datetime(date), format='%Y-%m-%d')
-        weight = request.form['position_weight']
-        ticker = request.form['ticker']
-
-        records = pd.DataFrame({ticker: [weight]}, index=[date])
-        upload_records(records, session['username'], overwrite=overwrite)
-
-    return render_template('portfolio_position_upload.html')
+@app.route('/logout')
+def logout():
+    flash('You have been logged out')
+    session.pop('username')
+    return redirect(url_for('login'))
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -223,13 +238,6 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/logout')
-def logout():
-    flash('You have been logged out')
-    session.pop('username')
-    return redirect(url_for('login'))
-
-
 if __name__ == '__main__':
     app.run(
         host=os.environ.get('IP'),
@@ -237,22 +245,25 @@ if __name__ == '__main__':
         debug=True
     )
 
+    # print(STATISTICS)
+
     # records1 = pd.read_csv('static/data/records1.csv', index_col=0)
     # print(records1)
-    # email = 'samuel.p.forster@gmail.com'
-    # username = get_username_from_email(email)
     # upload_records(records1, username, overwrite=True)
 
     # records2 = pd.read_csv('static/data/records2.csv', index_col=0)
     # print(records2)
 
     # print('CURRENT PORTFOLIO')
+
+    # email = 'samuel.p.forster@gmail.com'
+    # username = get_username_from_email(email)
     # current_portfolio = get_portfolio_from_username(username)
     # for k, v in current_portfolio.items():
     #     print(f'{k}: {v}')
 
     # upload_records(records2, username, overwrite=False)
-    
+
     # print('CURRENT PORTFOLIO')
     # current_portfolio = get_portfolio_from_username(username)
     # for k, v in current_portfolio.items():

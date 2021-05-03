@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h2>Asset Statistics</h2>
+    
+    <div class="row">
+        The below table contains some basic asset statistics
+    </div>
+
+    <table>
+        <tr>
+            {% for c in columns %}
+                <th>{{c}}</th>
+            {% endfor %}
+        </tr>
+        {% for row in rows %}
+        <tr>
+            {% for c, r in zip(columns, row) %}
+                <td>{{r}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
