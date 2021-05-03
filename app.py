@@ -6,7 +6,6 @@ from flask import (
     redirect, request, session, url_for
     )
 from flask_pymongo import PyMongo
-from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 
 if os.path.exists('env.py'):
@@ -47,10 +46,6 @@ def get_username_from_email(email):
     return first.capitalize() + last.capitalize()
 
 
-def get_portfolio_from_username(username):
-    return mongo.db.portfolios.find_one({'username': username})
-
-
 def dataframe_to_records(df, username):
     data = df.transpose().to_dict()
     records = []
@@ -61,7 +56,7 @@ def dataframe_to_records(df, username):
     return records
 
 
-def get_portfolio_from_username2(username):
+def get_portfolio_from_username(username):
     """Returns dataframe of all positions in db for given username"""
     positions = mongo.db.portfolios.find({'username': username})
     df = pd.DataFrame()
@@ -83,7 +78,7 @@ def upload_records(records, username, overwrite=True):
         mongo.db.portfolios.insert_many(records_to_upload)
         return
 
-    current_portfolio = get_portfolio_from_username2(username)
+    current_portfolio = get_portfolio_from_username(username)
     for date in current_portfolio.index:
         if not overwrite:
             # use current portfolio if we do not want to overwrite
@@ -160,7 +155,7 @@ def portfolio_overview(username):
         return redirect(url_for('login'))
 
     portfolio = pd.DataFrame(
-        get_portfolio_from_username2(username)).reset_index('date')
+        get_portfolio_from_username(username)).reset_index('date')
     portfolio.rename(columns={'date': 'DATE'}, inplace=True)
 
     return render_template(
@@ -283,16 +278,3 @@ if __name__ == '__main__':
         port=int(os.environ.get('PORT')),
         debug=True
     )
-
-    # print(STATISTICS)
-
-    # email = 'samuel.p.forster@gmail.com'
-    # username = get_username_from_email(email)
-    # overwrite = True
-
-    # records = pd.read_csv('static/data/records2.csv', index_col=0)
-    # upload_records(records, username, overwrite=False)
-
-    # current_portfolio = get_portfolio_from_username2(username)
-    # print('CURRENT PORTFOLIO')
-    # print(current_portfolio)

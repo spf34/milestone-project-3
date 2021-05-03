@@ -62,4 +62,3 @@ statistics = statistics.apply(lambda x: round(x, 2))
 cols = statistics.columns.tolist()
 statistics['METRIC'] = ['CAGR [%]', 'VOLATILITY [%]', 'SR']
 statistics = statistics[['METRIC'] + [x for x in cols]]
-
