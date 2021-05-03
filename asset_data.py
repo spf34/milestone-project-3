@@ -50,14 +50,16 @@ asset_prices.to_csv(prices_path)
 
 # compute performance statistics
 returns = asset_prices.pct_change().dropna(how='all')
-std = 16 * returns.std()
+std = 16 * 100 * returns.std()
 years = asset_prices.index[-1] - asset_prices.index[0]
 years /= dtm.timedelta(days=365.25)
 cagr = ((asset_prices.iloc[-1]/asset_prices.iloc[0]) ** (1 / years)) - 1
+cagr *= 100
 sr = cagr / std
 
 statistics = pd.concat([cagr, std, sr], axis=1).transpose()
 statistics = statistics.apply(lambda x: round(x, 2))
 cols = statistics.columns.tolist()
-statistics['METRIC'] = ['CAGR', 'VOLATILITY', 'SR']
+statistics['METRIC'] = ['CAGR [%]', 'VOLATILITY [%]', 'SR']
 statistics = statistics[['METRIC'] + [x for x in cols]]
+

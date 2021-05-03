@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div class="row">
+        <h2>Welcome to the Online Portfolio Tool</h2>
+    </div>
+    <div class="row card-panel grey lighten-4">
+        <span>
+            <strong>On this website you can:</strong>
+        </span>
+        <ol>
+            <li>Examine performance for a range ETFs</li>
+            <li>Construct a portfolio from these ETFs</li>
+            <li>Alter your portfolio by on this site</li>
+            <li>Alter your portfolio by uploading CSV files of positions</li>
+        </ol>
+
+        <a href="{{ url_for('register') }}">Register</a> for an account or 
+        <a href="{{ url_for('login') }}">Log In</a> to get started.
+    </div>
+
+{% endblock %}

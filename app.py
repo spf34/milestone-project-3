@@ -13,8 +13,11 @@ if os.path.exists('env.py'):
     import env
 
 import asset_data
+
+# constants
 PRICES = asset_data.asset_prices
 TICKERS = asset_data.TICKERS
+ZERO_RECORD = {ticker: 0.0 for ticker in TICKERS}
 STATISTICS = asset_data.statistics
 HISTORY_START = pd.to_datetime(asset_data.HISTORY_START, format='%Y-%m-%d')
 
@@ -48,37 +51,72 @@ def get_portfolio_from_username(username):
     return mongo.db.portfolios.find_one({'username': username})
 
 
+def dataframe_to_records(df, username):
+    data = df.transpose().to_dict()
+    records = []
+
+    for date in data:
+        r = {**{'username': username}, **{'date': date}, **data[date]}
+        records.append(r)
+    return records
+
+
+def get_portfolio_from_username2(username):
+    """Returns dataframe of all positions in db for given username"""
+    positions = mongo.db.portfolios.find({'username': username})
+    df = pd.DataFrame()
+    for p in positions:
+        df = pd.concat(
+            [df, pd.DataFrame(p.values(), index=p.keys())], axis=1)
+    df = df.transpose().drop(['_id', 'username'], axis=1)
+    return df.set_index('date').sort_index()
+
+
 def upload_records(records, username, overwrite=True):
-    # username = session['username']
-    data = records.transpose().to_dict()
+    for ticker in TICKERS:
+        if ticker not in records:
+            records[ticker] = 0
 
-    # remove dates already present in db if overwrite is set to false
+    if not mongo.db.portfolios.find_one({'username': username}):
+        print('NOT FOUND')
+        records_to_upload = dataframe_to_records(records, username)
+        mongo.db.portfolios.insert_many(records_to_upload)
+        return
 
-    if not overwrite:
-        current_portfolio = get_portfolio_from_username(username)    
-        for field in current_portfolio:
-            if field not in ['_id', 'username']:
-                data[field] = current_portfolio[field]
+    current_portfolio = get_portfolio_from_username2(username)
+    for date in current_portfolio.index:
+        if not overwrite:
+            # use current portfolio if we do not want to overwrite
+            records.loc[date] = current_portfolio.loc[date]
+        elif (overwrite and date not in records.index):
+            mongo.db.portfolios.delete_one(
+                {'username': username, 'date': date})
 
-    records_to_upload = {
-        **{'username': username},
-        **data
-        }
-    mongo.db.portfolios.insert_one(records_to_upload)
+    records_to_update = dataframe_to_records(
+        records.loc[records.index.isin(current_portfolio.index)],
+        username)
 
-    display_successful_upload_message(records)
+    for r in records_to_update:
+        mongo.db.portfolios.update_one(
+            {'username': username, 'date': r['date']},
+            {'$set': r})
 
+    records_to_upload = dataframe_to_records(
+        records.loc[~records.index.isin(current_portfolio.index)],
+        username)
+    if(records_to_upload):
+        mongo.db.portfolios.insert_many(records_to_upload)
 
-def display_successful_upload_message(records):
-    num_records = len(records)
-    records_text = 'Record' if num_records == 1 else 'Records'
-    flash(f'{num_records} {records_text} Successfully Processed')
+    flash('Successful Record upload')
 
 
 def validate_portfolio_records(records):
     # check valid assets passed
     columns = records.columns.tolist()
     assert all([x.upper() in TICKERS for x in columns])
+
+    # check no repeated columns
+    assert max([columns.count(x) for x in TICKERS]) == 1
 
     # convert index to str
     try:
@@ -100,9 +138,9 @@ def validate_portfolio_records(records):
 
 
 @app.route('/')
-def get_users():
-    users = mongo.db.users.find()
-    return render_template('users.html', users=users)
+@app.route('/home')
+def home():
+    return render_template('home.html')
 
 
 @app.route('/assets')
@@ -110,7 +148,7 @@ def assets():
 
     return render_template(
         'assets.html',
-        columns=list(TICKERS),
+        columns=STATISTICS.columns.tolist(),
         rows=STATISTICS.values.tolist(),
         zip=zip
         )
@@ -121,8 +159,9 @@ def portfolio_overview(username):
     if not session.get('username'):
         return redirect(url_for('login'))
 
-    portfolio = pd.DataFrame(get_portfolio_from_username(username))
-    portfolio = portfolio.drop(['_id', 'username'], axis=1).transpose()
+    portfolio = pd.DataFrame(
+        get_portfolio_from_username2(username)).reset_index('date')
+    portfolio.rename(columns={'date': 'DATE'}, inplace=True)
 
     return render_template(
         'portfolio_overview.html',
@@ -247,24 +286,13 @@ if __name__ == '__main__':
 
     # print(STATISTICS)
 
-    # records1 = pd.read_csv('static/data/records1.csv', index_col=0)
-    # print(records1)
-    # upload_records(records1, username, overwrite=True)
-
-    # records2 = pd.read_csv('static/data/records2.csv', index_col=0)
-    # print(records2)
-
-    # print('CURRENT PORTFOLIO')
-
     # email = 'samuel.p.forster@gmail.com'
     # username = get_username_from_email(email)
-    # current_portfolio = get_portfolio_from_username(username)
-    # for k, v in current_portfolio.items():
-    #     print(f'{k}: {v}')
+    # overwrite = True
 
-    # upload_records(records2, username, overwrite=False)
+    # records = pd.read_csv('static/data/records2.csv', index_col=0)
+    # upload_records(records, username, overwrite=False)
 
+    # current_portfolio = get_portfolio_from_username2(username)
     # print('CURRENT PORTFOLIO')
-    # current_portfolio = get_portfolio_from_username(username)
-    # for k, v in current_portfolio.items():
-    #     print(f'{k}: {v}')
+    # print(current_portfolio)
