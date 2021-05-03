@@ -24,7 +24,8 @@
                 <li><a href="#">Assets</a></li>
                 {% if session.username %}
                   <li><a href="{{ url_for('portfolio_overview', username=session['username']) }}">Portfolio Overview</a></li>
-                  <li><a href="{{ url_for('portfolio_construction', username=session['username']) }}">Portfolio Construction</a></li>
+                  <li><a href="{{ url_for('portfolio_position_upload', username=session['username']) }}">Position Upload</a></li>
+                  <li><a href="{{ url_for('portfolio_bulk_upload', username=session['username']) }}">Bulk Upload</a></li>
                   <li><a href="{{ url_for('logout') }}">Log Out</a></li>
                 {% else %}
                   <li><a href="{{ url_for('register') }}">Register</a></li>
@@ -39,7 +40,8 @@
             <li><a href="#">Assets</a></li>
             {% if session.username %}
               <li><a href="{{ url_for('portfolio_overview', username=session['username']) }}">Portfolio Overview</a></li>
-              <li><a href="{{ url_for('portfolio_construction', username=session['username']) }}">Portfolio Construction</a></li>
+              <li><a href="{{ url_for('portfolio_position_upload', username=session['username']) }}">Position Upload</a></li>
+              <li><a href="{{ url_for('portfolio_bulk_upload', username=session['username']) }}">Bulk Upload</a></li>
               <li><a href="{{ url_for('logout') }}">Log Out</a></li>
             {% else %}
               <li><a href="{{ url_for('register') }}">Register</a></li>

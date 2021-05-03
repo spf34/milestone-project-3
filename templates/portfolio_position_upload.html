@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h2>Portfolio Position Upload</h2>
+    <div class="row">
+        Upload individual positions by selecting date, asset ticker and weight.
+    </div>
+    
+    <div class="row">
+        <form method="POST" class="col s12">
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="position_date" name="position_date" type="text"
+                     class="datepicker validate" required>
+                    <label for="position_date">Position Date</label>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="input-field col s3">
+                    <input id="position_weight" name="position_weight" type="number" 
+                    step="any" class="validate" required>
+                    <label for="position_weight">Weight</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <label for="ticker">Select Ticker</label>
+                    
+                    <select id="ticker" name="ticker">
+                        <option value="" disabled selected>Select Ticker</option>
+                        <option value="AGG">AGG</option>
+                        <option value="EMB">EMB</option>
+                        <option value="HYG">HYG</option>
+                        <option value="IAU">IAU</option>
+                        <option value="IEMG">IEMG</option>
+                        <option value="IEFA">IEFA</option>
+                        <option value="MBB">MBB</option>
+                        <option value="QQQ">QQQ</option>
+                        <option value="SDY">SDY</option>
+                        <option value="SPY">SPY</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="switch">
+                    Overwrite Current Positions
+                    <label>
+                    Off
+                    <input type="checkbox" id="overwrite" name="overwrite">
+                    <span class="lever"></span>
+                    On
+                    </label>
+                </div>
+            </div>
+            <div class="row">
+                <button type="submit" class="col s12 blue darken-2 btn-large">Upload</button>
+            </div>
+
+        </form>
+    </div>
+    
+{% endblock %}

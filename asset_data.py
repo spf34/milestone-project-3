@@ -4,9 +4,8 @@ import yfinance as yf
 import datetime as dtm
 
 TICKERS = (
-    'AGG', 'EMB', 'HYG', 'IAU', 'IEMG', 'IEFA', 'MBB',
-    'QQQ', 'SDY', 'SPY', 'TIP', 'VTV', 'VUG', 'XLC',
-    'XLE', 'XLF', 'XLI', 'XLK', 'XLV', 'XLY'
+    'AGG', 'EMB', 'HYG', 'IAU', 'IEMG',
+    'IEFA', 'MBB', 'QQQ', 'SDY', 'SPY'
     )
 
 HISTORY_START = '2016-01-01'

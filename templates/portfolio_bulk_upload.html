@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h2>Portfolio Bulk Upload</h2>
+    <div class="row">
+        Upload several position at once by uploading a CSV file.
+    </div>
+    
+    <div class="row">
+        <form method="POST" enctype="multipart/form-data" class="col s12">
+                        
+            <div class="row">
+                <input type="file" id="file" name="file" accept="csv">
+            </div>
+            
+            <div class="row">
+                <div class="switch">
+                    Overwrite Current Positions
+                    <label>
+                    Off
+                    <input type="checkbox" id="overwrite" name="overwrite">
+                    <span class="lever"></span>
+                    On
+                    </label>
+                </div>
+            </div>
+
+            <div class="row">
+                <button type="submit" class="col s12 blue darken-2 btn-large">Upload</button>
+            </div>
+        </form>
+    </div>
+        
+{% endblock %}

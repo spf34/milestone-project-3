@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import datetime as dtm
 from flask import (
     Flask, flash, render_template,
     redirect, request, session, url_for
@@ -77,14 +78,19 @@ def validate_portfolio_records(records):
     columns = records.columns.tolist()
     assert all([x.upper() in TICKERS for x in columns])
 
-    # convert index to datetimes
+    # convert index to str
     try:
         records.index = pd.to_datetime(records.index, format='%Y-%m-%d')
-    except ValueError:
-        flash('Unable to parse dates. Please use the format: "yyyy/mm/dd"')
+    except TypeError:
+        flash('Unable to parse dates. May already be of type str')
 
     # check for valid dates
     assert records.first_valid_index() >= HISTORY_START
+
+    records.index = [
+        dtm.datetime.strftime(d, '%Y-%m-%d')
+        for d in records.index
+        ]
 
     return records, True
 
@@ -117,28 +123,38 @@ def portfolio_overview(username):
         )
 
 
-@app.route('/portfolio_construction/<username>', methods=['GET', 'POST'])
-def portfolio_construction(username):
+@app.route('/portfolio_bulk_upload/<username>', methods=['GET', 'POST'])
+def portfolio_bulk_upload(username):
     if request.method == 'POST':
+        # get data from request
+        overwrite = 'overwrite' in request.form
         filepath = request.files.get('file')
         records = pd.read_csv(filepath, index_col=0)
-        records, validated = validate_portfolio_records(records)
 
+        # validate and upload record input
+        records, validated = validate_portfolio_records(records)
         if not validated:
             flash('Unable to process records file')
-            return render_template('portfolio_construction.html')
+            return render_template('portfolio_bulk_upload.html')
+        upload_records(records, session['email'], overwrite=overwrite)
+        num_records = len(records)
+        records_text = 'Record' if num_records == 1 else 'Records'
+        flash(f'{num_records} {records_text} Successfully Processed')
 
-        upload_records(records, session['email'])
+    return render_template('portfolio_bulk_upload.html')
 
-        flash('Records successfully processed')
-        assets = records.loc[:, records.max() > 0].columns.tolist()
-        return render_template(
-            'portfolio_construction.html',
-            number_records=len(records),
-            assets=assets
-            )
 
-    return render_template('portfolio_construction.html')
+@app.route('/portfolio_position_upload/<username>', methods=['GET', 'POST'])
+def portfolio_position_upload(username):
+    if request.method == 'POST':
+        overwrite = 'overwrite' in request.form
+        date = request.form['position_date']
+        date = dtm.datetime.strftime(pd.to_datetime(date), format='%Y-%m-%d')
+        weight = request.form['position_weight']
+        
+        # ticker = request.form['ticker']
+
+    return render_template('portfolio_position_upload.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -173,7 +189,7 @@ def register():
         set_session_info(registration['email'])
         flash('Registered Successfully!')
         return redirect(
-            url_for('portfolio_overview'), username=session['username']
+            url_for('portfolio_overview', username=session['username'])
             )
 
     return render_template('register.html')
@@ -213,29 +229,29 @@ def logout():
 
 
 if __name__ == '__main__':
-    # app.run(
-    #     host=os.environ.get('IP'),
-    #     port=int(os.environ.get('PORT')),
-    #     debug=True
-    # )
+    app.run(
+        host=os.environ.get('IP'),
+        port=int(os.environ.get('PORT')),
+        debug=True
+    )
 
     # records1 = pd.read_csv('static/data/records1.csv', index_col=0)
     # print(records1)
-    email = 'samuel.p.forster@gmail.com'
-    username = get_username_from_email(email)
+    # email = 'samuel.p.forster@gmail.com'
+    # username = get_username_from_email(email)
     # upload_records(records1, username, overwrite=True)
 
-    records2 = pd.read_csv('static/data/records2.csv', index_col=0)
-    print(records2)
+    # records2 = pd.read_csv('static/data/records2.csv', index_col=0)
+    # print(records2)
 
-    print('CURRENT PORTFOLIO')
-    current_portfolio = get_portfolio_from_username(username)
-    for k, v in current_portfolio.items():
-        print(f'{k}: {v}')
+    # print('CURRENT PORTFOLIO')
+    # current_portfolio = get_portfolio_from_username(username)
+    # for k, v in current_portfolio.items():
+    #     print(f'{k}: {v}')
 
-    upload_records(records2, username, overwrite=False)
+    # upload_records(records2, username, overwrite=False)
     
-    print('CURRENT PORTFOLIO')
-    current_portfolio = get_portfolio_from_username(username)
-    for k, v in current_portfolio.items():
-        print(f'{k}: {v}')
+    # print('CURRENT PORTFOLIO')
+    # current_portfolio = get_portfolio_from_username(username)
+    # for k, v in current_portfolio.items():
+    #     print(f'{k}: {v}')
