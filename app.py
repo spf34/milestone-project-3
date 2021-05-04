@@ -16,7 +16,6 @@ import asset_data
 # constants
 PRICES = asset_data.asset_prices
 TICKERS = asset_data.TICKERS
-ZERO_RECORD = {ticker: 0.0 for ticker in TICKERS}
 STATISTICS = asset_data.statistics
 HISTORY_START = pd.to_datetime(asset_data.HISTORY_START, format='%Y-%m-%d')
 
@@ -63,8 +62,12 @@ def get_portfolio_from_username(username):
     for p in positions:
         df = pd.concat(
             [df, pd.DataFrame(p.values(), index=p.keys())], axis=1)
-    df = df.transpose().drop(['_id', 'username'], axis=1)
-    return df.set_index('date').sort_index()
+    try:
+        df = df.transpose().drop(['_id', 'username'], axis=1)
+        df = df.set_index('date').sort_index()
+    except KeyError:
+        pass
+    return df
 
 
 def upload_records(records, username, overwrite=True):
@@ -154,9 +157,11 @@ def portfolio_overview(username):
     if not session.get('username'):
         return redirect(url_for('login'))
 
-    portfolio = pd.DataFrame(
-        get_portfolio_from_username(username)).reset_index('date')
-    portfolio.rename(columns={'date': 'DATE'}, inplace=True)
+    portfolio = pd.DataFrame(get_portfolio_from_username(username))
+    
+    if len(portfolio):
+        portfolio = portfolio.reset_index('date')
+        portfolio.rename(columns={'date': 'DATE'}, inplace=True)
 
     return render_template(
         'portfolio_overview.html',
@@ -205,6 +210,7 @@ def portfolio_bulk_upload(username):
 def logout():
     flash('You have been logged out')
     session.pop('username')
+    session.pop('email')
     return redirect(url_for('login'))
 
 

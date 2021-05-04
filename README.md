@@ -1,117 +1,47 @@
-Issues encountered:
-
-- redirect method not working (seemed to be an issue with gitpod, as discovered by looking at Slack). Heroku deployment does not have this issue
-
-- Heroku app error. Must maintain up to date requirements.txt file to ensure all required packages available for the deployed version 
-
-- Having to test updates through Heroku due to redirect method issue
-
-- Select not showing up on Heroku despite working locally. Fixed by hard reload
-
-- General issues with datepicker and select. Former due to date formatting, latter still a mystery.
-
-- Deciding the form of data to save in the db. Had originally just used username as key and then dict of dicts with keys being dates and values being dicts of portfolio weights. Changed and chose username, date, assets as keys
-
-- Overwrite logic is not ideal at the moment - done at the date level, whereas the ideal would be asset level by date. The current setup means that uploading individual assets
-
-Sources used:
-
-- To display pandas dataframe in html: 
-https://stackoverflow.com/questions/52644035/how-to-show-a-pandas-dataframe-into-a-existing-flask-html-table
-
-- To upload csv via HTML and access as pandas dataframe:
-https://stackoverflow.com/questions/51356402/how-to-upload-excel-or-csv-file-to-flask-as-a-pandas-data-frame
-
-
-
-
 # Online Portfolio Tool
 
-### A tool to manage online ETF portfolios and share them amongst a community of users.
+## A tool to manage online ETF portfolios and share them amongst a community of users.
+
+### Application Features ###
 Online Portfolio Tool allows users to select and build portfolios from amongst a collection of 10 Exchange Traded Funds (ETFs). These cover major US equity and fixed income indices for the development of a diversified portfolio.
 
 The available ETFS are:
 ['AGG', 'EMB', 'HYG', 'IAU', 'IEMG', 'IEFA', 'MBB', 'QQQ', 'SDY', 'SPY']
 
-### Gameplay ###
-- The single-player game consists of the player turning over cards, two by two, until the full grid of cards has been 'matched'
-- A match occurs when the two cards turned over by a player within one 'move' show the same prime minister
-- A timer will begin counting down from 100 (seconds) when the game starts. The player must match all cards before time runs out
-- The number of moves, or 'turns', made by a player will be recorded, with the goal being to complete the game in as few moves as possible
-
-### Application Features ###
-
-The current key features of the application are:
-* Providing a simple, intuitive and fun online game that can be played in a short period of time
-* Possibly stoking interest in who past prime ministers might have been in the case that the user does not recognise their image
-
 ## UX ##
 User stories:
-- Anyone looking to stimulate their memory through a game requiring minimal effort to grasp
-- Possibly school children who, it is hoped, will take some interest in their political leaders - past and present - after encountering them in an enjoyable scenario
+- Users may want to track their investment ideas through time and can do that by uploading and editing a portfolio
+- Users may want to view relative performances of a range of assets to decide how to build their portfolios
+- (Future feature) Users want to build a virtual portfolio and track it's performance through time, in essence allowing the 'backtesting' of investment ideas
 
 ### Five Planes ###
-* Strategy: The site exists to host a fun variant of a classic game to be played for leisure and mental stimulation
+* Strategy: The site exists to provide a free and easy to use source for portfolio construction and tracking for retail investors
 
-* Scope: The requirements of the site can all be addressed with a single page consisting of:
-    - Title indicating nature of the site ('Match the Minister')
-    - Game grid
-    - Game information, e.g. tracking time remainaing and moves made
-    - Ability to start/restart the game when appropriate 
+* Scope: The requirements of the site can all be addressed through a handful of pages focused on the key features. A jinja template will be used that each page can extend. The required pages are
+    - Home: welcoming the user and explaining the site's purpose
+    - Register/Log In/Log Out: pages to create accounts and log in/out
+    - Assets: Give an overview of the assets that can be incorporated within a portfolio
+    - Position Upload: Enable users to upload single position to their portfolio
+    - Bulk Upload: Enable users to upload CSV of positions to their portfolio
+The final two pages could be combined but it was technically easier to have them being separate to use one separate 'POST' method on each.
+
 
 * Structure: The below images show wireframes for the desktop and mobile versions of the site, as well as how the overlay would work in the desktop case. The mobile variant follows the same pattern
 
-    #### Wireframes ####
 
-    - [Desktop](https://github.com/spf34/milestone-project-2/tree/master/assets/images/wireframes/desktop.png)
-    - [Desktop Overlay](https://github.com/spf34/milestone-project-2/tree/master/assets/images/wireframes/desktop_overlay.png)
-    - [Mobile](https://github.com/spf34/milestone-project-2/tree/master/assets/images/wireframes/mobile.png)
-  
-* Skeleton: In concrete terms, the game will be based around a flexbox table consisting of equally sized card objects
-It will be necessary for the cards to be two-sided, represented by 'front' and 'back' face classes, and to be able to 'rotate' to toggle the users' view between the two
-The underlying logic behind how this is achieved closely follows sources 1 and 2 outlined in the Code/Credits section below
+* Skeleton: In concrete terms, app will make use of a range of materialze components, similar to what was seen in the miniproject. In particular, card-panels will be utilised to give the upload pages a clear structure. A file upload form will be used for bulk uploads and a combination of a datepicker input, select input and standard text input will be used for the date, ticker, weight components of the individual position upload.
 
-* Surface: Visually, the page will make use of a family of clean blues for the title and background, with white for the overlay text and a classical, official image for the card backs
-Together these design choices aim to evoke the idea of tradition associated with the post of prime minister
+* Surface: Visually, the page will make use of simple greys and blues. The aim is to allow the user to focus on the portfolio/statistics tables.
 
 ## Features ##
 
-Overlays:
-- A new game will always be started from an overlay screen with a click of the mouse or a tap of the screen
-- There are three overlays:
-    * New game - appearing upon first arriving on the page
-    * Victory - appearing after the user has 'won' by matching all cards within the alloted time
-    * Gameover - appearing after the user has 'lost' by not matching all cards before the timer runs out
-
-- [New Game Overlay](https://github.com/spf34/milestone-project-2/tree/master/assets/images/gameplay/home_screen.png)
-- [Victory Overlay](https://github.com/spf34/milestone-project-2/tree/master/assets/images/gameplay/victory.png)
-- [Gameover Overlay](https://github.com/spf34/milestone-project-2/tree/master/assets/images/gameplay/gameover.png)
-
-Game Information:
-- We store the number of moves made by the user and the time remainaing until gameover above the game grid
-- These elements are dynamically updated in Javascript as the game progresses
-    <br>
-
-    [Game Information](https://github.com/spf34/milestone-project-2/tree/master/assets/images/gameplay/play_begins.png)
-
-
-Interactive Game and Game Grid
-- Each of the 16 cards is clickable and will turn over if it is not already part of a matched pair
-- Consideration was taken to
-    * Randomly shuffle the cards so that gameplay is not deterministic
-    * Provide the illusion of cards being 3 dimensional whilst they are turning
-    * Return any two cards constituting an unsuccesful move to be face down with a delay so that the user can take note of their positions
-    * Prohibit moves that consist of flipping and then reflipping the same card
-    * Prohibit moves that flip an already matched card
-    * Prohibit more than two cards being flipped as part of any one move
-    * Reset the game grid upon a new game being started following victory or defeat
-- Sound effects were added to the game to improve the user experience
-    * A celebratory trumpet sound plays when two cards are matched
-    * Overlapping matches are handled in such a way that both sound clips will play
-    * Upbeat and downbeat piano clips play upon victory and gameover, respectively
-
-* [Matched Cards](https://github.com/spf34/milestone-project-2/tree/master/assets/images/gameplay/first_match.png)
-* [Middle of Move](https://github.com/spf34/milestone-project-2/tree/master/assets/images/gameplay/mid_turn.png)
+- The app downloads financial time series data from Yahoo Finance on any day that it is used and saves the most up to date dataset in a file called 'asset_prices.csv' for easy access. 
+- This time series data is used to compute statistics for each of the financial assets in which users can invest. These statistics are displayed on the 'Assets' page.
+- Users can register accounts, which are then saved in the 'users' collection of the underlying mongodb database.
+- Users can log in and out of the app, which will keep track of session details including the users username and email.
+- Users can upload/edit their own portfolios through two methods:
+    * Position Upload: Allows uploading a single position on a given date using interactive forms
+    * Bulk Upload: More flexible approach allowing dataframe of positions through time to be uploaded. Note that adding, editing and deleting records can all be accomplished through usage of this feature.
 
 ## Technologies, Frameworks & Tools Used ##
 - Python/Python3
@@ -126,52 +56,77 @@ Interactive Game and Game Grid
 
 ## Testing ##
 - [HTML code validator](https://validator.w3.org/) - Analysing rendered source code due to use of jinja.
-base.html: 1 error, 1 warning removed. Move 'script' tags inside body to remove error. Warning corresponds to flash section not having header. Adjust jinja code to only display this section when there are messages to display
-- [CSS code validator](https://jigsaw.w3.org/css-validator/) - No errors or warnings
-- [JavaScript Linter](https://jshint.com/) - No errors or warnings after making changes to avoid the following warnings:
-    * Undefined variables caused by omission of 'var', 'let', etc.
-    * Warnings on use of 'let' versus 'var' for global variables
-    * Warning on iterating through array objects directly instead of using an index for access
-    * Unused variable definition warning
-- Gameplay:
-    * Check that number of clicks is correctly recorded. In particular, this includes not counting clicks as part of illegitimate moves
-    * Check that time remaining is correctly recorded and gameover is triggered upon reaching zero
-    * Check that overlays respond to click events and cause a clean new game to be started, including reset of time remaining, clicks made and resetting all cards to be facedown
-    * Check that the appropriate overlay is triggered by the appropriate event
-    * Check that appropriate sounds are played when they should be, including when two matches follow closely after one another
-    * Check that no illegitimate moves are allowed, including double-flips, flips of matched cards and flipping more than two cards per move
-    * Check that card shuffle is taking effect and that the ordering of the cards is non-deterministic
+    * base.html: 1 error, 1 warning removed. Move 'script' tags inside body to remove error. Warning corresponds to flash section not having header. Adjust jinja code to only display this section when there are messages to display.
+    * portfolio_bulk_upload.html: 2 errors. Replace multiline paragraph by div. Accept file of type ".csv" instead of "csv".
+- [CSS code validator](https://jigsaw.w3.org/css-validator/) - No errors or warnings.
+- [JavaScript Linter](https://jshint.com/) - 1 error in script.js of missing semi-colon.
+- Python - PEP8 followed according to gutpod guidelines. 1 warning caused by "potentially unused" import of 'env'.
+
+- Application:
+    * Check site navigation using navbar
+    * Check correct navbar elements display depending on whether user is logged in or out
+    * Check the creation of new users works correctly:
+        - Discovery of bug showing empty portfolio due to pandas operations, fixed.
+    * Check new users added to database
+    * Check password matching requirement upon registration
+    * Check password matching requirement upon logging in
+    * Check correct portfolio displays on 'Portfolio Overview' page
+    * Check asset data is correctly downloaded and extended
 - General
-    * Check all images have alternate text
-    * Check for and remove any unused CSS classes
-    * View the game on all of the available devices in Chrome developer tools. Several issues discovered this way and fixed satisfactorily. In particular, the inability to use a double click feature to trigger events on mobile 
-    * Test the transition from four columns to two columns on devices of smaller screen sizes
-    * Test game using Chrome and Safari - at the last minute I noticed that there seem to be some real problems on Safari with cards not rendering properly when turning and sometimes remaining facedown after clicking
+    * Check local and Heroku deployments have the same functionality
+    * Check for and remove any unused HTML, CSS, JavaScript or Python code
+    * Check mobile navbar functioning correctly
+    * Test mobile friendliness - display tables will not fit on mobile screen e.g. on 'Assets' page
+    
 
-## Bugs ##
- [How can I prevent text/element selection with cursor drag](https://stackoverflow.com/questions/5429827/how-can-i-prevent-text-element-selection-with-cursor-drag)
+## Issues encountered ##
 
+- For several days during development the flask 'redirect' method did not work - the website would get stuck before a 'too long to respond' error was shown. The Heroku deployment of the project did not have this The issue eventually solved itself and seems to have been related to gitpod according to other users in the Code Institute Slack chat. During the period in which this error persisted I tested code updates through Heroku, which was a slower process.
+
+- Deciding the form of data to save in the database was not straightforward. I realised after starting the project that a relational database was a more natural structure for storing stock portfolio data. After deciding to restrict users to one portfolio, I attempted using username as the only key in each document and a dictionary of dictionaries, with keys being dates and values being dictionaries of portfolio weights, as values. Due to the difficulty of editing records stored in this format, I eventually switched to using documents with username, date, assets as keys.
+
+- I encountered an error when trying to view my Heroku app because I had not updated the requirements.txt file to ensure all required packages were available for the deployed version of the project. 
+
+- The 'Select Ticker' drop-down menu from the 'Position Upload' page was not displaying on the Heroku deployment of the app despite working locally. This was resolved by a hard reload.
+
+- I encountered difficulties getting the 'datepicker' form working correctly. These were due to incorrect date formatting in the JavaScript initialisation.
+
+- The 'Select Ticker' drop-down menu from the 'Position Upload' page was not displaying a drop-down menu. I am unsure what fixed this problem. It may have been fixing the above initialising issue with 'datepicker' as the select form was initialised after this.
 
 ### Unresolved ###
+- Not responsive for mobile design at this stage.
 
+- The current record overwrite logic is not ideal. Records are overwritten at the date level but it would be preferable if this were done at the (date, asset) level. That way, updating the weight of one security on a given date would not impact the rest of the portfolio on that date.
 
 
 ## Deployment ##
-This section closely follows the example given here: [README example](https://github.com/AJGreaves/portrait-artist/blob/master/README.md)
 
-The project was developed using the Gitpod IDE and committed to github with git
+The project was developed using the Gitpod IDE and committed to github with git. The project was deployed to Heroku.
 
-The project was deployed from its [GitHub repository](https://github.com/spf34/milestone-project-2) to GitHub pages using the usual steps:
-1. Navigate to the repository on GitHub
-2. Click 'Settings' and scroll down to the 'GitHub Pages' subsection
-3. Under Source click the drop-down menu labelled None and select Master Branch
-4. On selecting Master Branch the page is refreshed and the website will now be deployed
-5. Here is a link to the deployed page: [GitHub Pages Deployment](https://spf34.github.io/milestone-project-2/)
+The process for deploying the project was:
+1. Create a 'Procfile' for your project containing "web: python app.py", assuming that the Python file running the flask app is named "app.py". This will tell Heroku how to run the app.
+2. Create a requirements.txt file so that all required depencies are stored.
+3. Create a new app from the Heroku dashboard by selecting 'New/Create new app' from the top-right
+4. Select the app and access the 'Deploy' page. Here you can link your app to the corresponding github repository by selecting 'GitHub' as deployment method and then clicking 'Connect'
+5. Navigate to 'Settings' and select 'Reveal Config Vars'. Here we should set those variables contained within env.py that will not be added to github, i.e. IP, PORT, SECRET_KEY, MONGO_URI, MONGO_DBNAME
+6. Navigate back to the deploy tab. You can decide to select a branch of the project to automatically deploy. Each new commit will trigger such a deployment.
+7. Manually deploy by selecting 'Deploy Branch'
+
+
+The project was deployed from its [GitHub repository](https://github.com/spf34/milestone-project-3)
 
 ## Credits ##
 
 ### Code ###
-The overall sturcture of my code, and particularly the way in which HTML & CSS were used to form the game grid and allow cards to be turned, very closely follows a mixture of the following three sources:
-1. [Memory Card Game - JavaScript Tutorial](https://www.youtube.com/watch?v=ZniVgo8U7ek&ab_channel=freeCodeCamp.org)
-2. [How to Code a Card Matching Game](https://www.youtube.com/watch?v=28VfzEiJgy4&t=0s)
-3. [Live Coding a Memory Game: HTML, CSS, Javascript](https://www.youtube.com/watch?v=bbb9dZotsOc)
+The project borrows heavily from the mini project section of the 'Backend Development' module. In particular, the overall design is quite similar and the logic behind logging in/out and registering is almost the same. 
+
+The basis of two features was taken from the below links:
+- Display pandas dataframe in html: 
+https://stackoverflow.com/questions/52644035/how-to-show-a-pandas-dataframe-into-a-existing-flask-html-table
+
+- Upload csv via HTML and access as pandas dataframe: 
+https://stackoverflow.com/questions/51356402/how-to-upload-excel-or-csv-file-to-flask-as-a-pandas-data-frame
+
+
+
+
