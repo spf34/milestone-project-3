@@ -13,9 +13,10 @@ User stories:
 - Users may want to track their investment ideas through time and can do that by uploading and editing a portfolio
 - Users may want to view relative performances of a range of assets to decide how to build their portfolios
 - (Future feature) Users want to build a virtual portfolio and track it's performance through time, in essence allowing the 'backtesting' of investment ideas
+- (Future feature) View other users' portfolios or their performance 
 
 ### Five Planes ###
-* Strategy: The site exists to provide a free and easy to use source for portfolio construction and tracking for retail investors
+* Strategy: The site exists to provide a free and easy way for retail investors to use construct portfolios and track them 
 
 * Scope: The requirements of the site can all be addressed through a handful of pages focused on the key features. A jinja template will be used that each page can extend. The required pages are
     - Home: welcoming the user and explaining the site's purpose
@@ -26,10 +27,10 @@ User stories:
 The final two pages could be combined but it was technically easier to have them being separate to use one separate 'POST' method on each.
 
 
-* Structure: The below images show wireframes for the desktop and mobile versions of the site, as well as how the overlay would work in the desktop case. The mobile variant follows the same pattern
+* Structure: The pages will be very simple, utilising printed tables for Assets and Portfolio Overview and cards encapsulating forms where data input is required.
 
 
-* Skeleton: In concrete terms, app will make use of a range of materialze components, similar to what was seen in the miniproject. In particular, card-panels will be utilised to give the upload pages a clear structure. A file upload form will be used for bulk uploads and a combination of a datepicker input, select input and standard text input will be used for the date, ticker, weight components of the individual position upload.
+* Skeleton: In concrete terms, the app will make use of a range of materialze components, similar to what was seen in the miniproject. In particular, card-panels will be utilised to give the upload pages a clear structure. A file upload form will be used for bulk uploads and a combination of a datepicker input, select input and standard text input will be used for the date, ticker, weight components of the individual position upload.
 
 * Surface: Visually, the page will make use of simple greys and blues. The aim is to allow the user to focus on the portfolio/statistics tables.
 
@@ -38,10 +39,10 @@ The final two pages could be combined but it was technically easier to have them
 - The app downloads financial time series data from Yahoo Finance on any day that it is used and saves the most up to date dataset in a file called 'asset_prices.csv' for easy access. 
 - This time series data is used to compute statistics for each of the financial assets in which users can invest. These statistics are displayed on the 'Assets' page.
 - Users can register accounts, which are then saved in the 'users' collection of the underlying mongodb database.
-- Users can log in and out of the app, which will keep track of session details including the users username and email.
+- Users can log in and out of the app, which will keep track of session details including the user's username and email.
 - Users can upload/edit their own portfolios through two methods:
     * Position Upload: Allows uploading a single position on a given date using interactive forms
-    * Bulk Upload: More flexible approach allowing dataframe of positions through time to be uploaded. Note that adding, editing and deleting records can all be accomplished through usage of this feature.
+    * Bulk Upload: More flexible approach allowing dataframe of positions through time to be uploaded. Note that adding, editing and deleting records can all be accomplished through usage of this feature. There is no need for a standalone edit/delete method.
 
 ## Technologies, Frameworks & Tools Used ##
 - Python/Python3
