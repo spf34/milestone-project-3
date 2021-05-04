@@ -158,9 +158,9 @@ def portfolio_overview(username):
         return redirect(url_for('login'))
 
     portfolio = pd.DataFrame(get_portfolio_from_username(username))
-    portfolio = portfolio[list(TICKERS)]
-    
+
     if len(portfolio):
+        portfolio = portfolio[list(TICKERS)]
         portfolio = portfolio.reset_index('date')
         portfolio.rename(columns={'date': 'DATE'}, inplace=True)
 
