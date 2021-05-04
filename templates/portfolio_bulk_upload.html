@@ -4,6 +4,16 @@
     <h2>Portfolio Bulk Upload</h2>
     <div class="row">
         Upload several position at once by uploading a CSV file.
+        <div>
+            The CSV should have:
+            <ol> 
+                <li> Asset tickers as column names </li> 
+                <li> Date strings of the format 'yyyy/mm/dd' as indices</li>
+                <li> Floating point numbers indicating weights as values </li>
+            </ol>
+            <strong>It is not necessary to provide a weight for each asset.<br></strong>
+            Tickers that are not included in the header will be given 0 weight on all dates.
+        </div>
     </div>
     
     <div class="row card-panel grey lighten-4">
